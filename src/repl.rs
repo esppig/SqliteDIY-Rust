@@ -16,6 +16,12 @@ enum PrepareState {
     UNRECOGNIZED,
 }
 
+enum Statement<'a> {
+    INSERT(&'a str),
+    SELECT(&'a str),
+    UNKNOWN(&'a str),
+}
+
 pub fn looper() -> io::Result<()> {
     let mut input_buf = String::new();
     loop {
@@ -36,12 +42,12 @@ pub fn looper() -> io::Result<()> {
             }
         }
         match prepare_stmt(&input_buf) {
-            PrepareState::SUCCESS => {
-                execute_stmt(&input_buf);
+            (PrepareState::SUCCESS, stm) => {
+                execute_stmt(stm);
                 println!("Executed!");
                 continue;
             }
-            PrepareState::UNRECOGNIZED => {
+            (PrepareState::UNRECOGNIZED, _) => {
                 println!("无法识别的语句: {}", &input_buf);
                 continue;
             }
@@ -60,11 +66,24 @@ fn do_meta_cmd(cmd: &str) -> MetaState {
     MetaState::UNRECOGNIZED
 }
 
-fn prepare_stmt(stm: &str) -> PrepareState {
-    if stm == "query;" {
-        return PrepareState::SUCCESS;
+fn prepare_stmt(stm: &str) -> (PrepareState, Statement) {
+    if stm.starts_with("insert") {
+        return (PrepareState::SUCCESS, Statement::INSERT(stm));
     }
-    PrepareState::UNRECOGNIZED
+    if stm.starts_with("select") {
+        return (PrepareState::SUCCESS, Statement::SELECT(stm));
+    }
+    (PrepareState::UNRECOGNIZED, Statement::UNKNOWN(stm))
 }
 
-fn execute_stmt(stm: &str) {}
+fn execute_stmt(stm: Statement) {
+    match stm {
+        Statement::INSERT(s) => {
+            println!("insert stm: {}", &s);
+        }
+        Statement::SELECT(s) => {
+            println!("select stm: {}", &s);
+        }
+        Statement::UNKNOWN(_) => {}
+    }
+}

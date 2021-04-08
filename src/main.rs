@@ -1,4 +1,5 @@
 mod repl;
+mod table;
 
 use repl::looper;
 

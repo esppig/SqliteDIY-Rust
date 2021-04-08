@@ -6,6 +6,8 @@ use std::{
     process::exit,
 };
 
+use crate::table::Row;
+
 enum MetaState {
     SUCCESS,
     UNRECOGNIZED,
@@ -14,12 +16,29 @@ enum MetaState {
 enum PrepareState {
     SUCCESS,
     UNRECOGNIZED,
+    SyntaxError,
 }
 
-enum Statement<'a> {
+enum StatementType<'a> {
     INSERT(&'a str),
     SELECT(&'a str),
     UNKNOWN(&'a str),
+    // Empty,
+}
+
+struct Statement<'a> {
+    stm_type: StatementType<'a>,
+    row: Row,
+}
+
+impl<'a> Statement<'a> {
+    fn new(stm_type: StatementType<'a>) -> Statement<'a> {
+        Statement {
+            // stm_type: StatementType::Empty,
+            stm_type,
+            row: Row::new(),
+        }
+    }
 }
 
 pub fn looper() -> io::Result<()> {
@@ -41,10 +60,15 @@ pub fn looper() -> io::Result<()> {
                 }
             }
         }
-        match prepare_stmt(&input_buf) {
-            (PrepareState::SUCCESS, stm) => {
-                execute_stmt(stm);
+        match check_stmt(&input_buf) {
+            (PrepareState::SUCCESS, stm_type) => {
+                let stmt = Statement::new(stm_type);
+                execute_stmt(stmt);
                 println!("Executed!");
+                continue;
+            }
+            (PrepareState::SyntaxError, _) => {
+                println!("语法错误: {}", &input_buf);
                 continue;
             }
             (PrepareState::UNRECOGNIZED, _) => {
@@ -66,24 +90,32 @@ fn do_meta_cmd(cmd: &str) -> MetaState {
     MetaState::UNRECOGNIZED
 }
 
-fn prepare_stmt(stm: &str) -> (PrepareState, Statement) {
-    if stm.starts_with("insert") {
-        return (PrepareState::SUCCESS, Statement::INSERT(stm));
-    }
-    if stm.starts_with("select") {
-        return (PrepareState::SUCCESS, Statement::SELECT(stm));
-    }
-    (PrepareState::UNRECOGNIZED, Statement::UNKNOWN(stm))
+fn prepare_stmt(stm_type: StatementType) -> Statement {
+    Statement::new(stm_type)
 }
 
-fn execute_stmt(stm: Statement) {
-    match stm {
-        Statement::INSERT(s) => {
+fn check_stmt(buf: &str) -> (PrepareState, StatementType) {
+    if buf.starts_with("insert") {
+        let tokens = buf.split_whitespace().collect::<Vec<&str>>();
+        if tokens.len() != 4 {
+            return (PrepareState::SyntaxError, StatementType::INSERT(buf));
+        }
+        return (PrepareState::SUCCESS, StatementType::INSERT(buf));
+    }
+    if buf.starts_with("select") {
+        return (PrepareState::SUCCESS, StatementType::SELECT(buf));
+    }
+    (PrepareState::UNRECOGNIZED, StatementType::UNKNOWN(buf))
+}
+
+fn execute_stmt(stmt: Statement) {
+    match stmt.stm_type {
+        StatementType::INSERT(s) => {
             println!("insert stm: {}", &s);
         }
-        Statement::SELECT(s) => {
+        StatementType::SELECT(s) => {
             println!("select stm: {}", &s);
         }
-        Statement::UNKNOWN(_) => {}
+        StatementType::UNKNOWN(_) => {}
     }
 }

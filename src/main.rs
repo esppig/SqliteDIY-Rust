@@ -1,3 +1,4 @@
+mod constants;
 mod repl;
 mod table;
 

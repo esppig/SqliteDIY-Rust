@@ -21,8 +21,8 @@ enum PrepareState {
 }
 
 enum ExecuteResult {
-    EXECUTE_SUCCESS,
-    EXECUTE_TABLE_FULL,
+    ExecuteSuccess,
+    ExecuteTableFull,
 }
 
 #[derive(Debug)]
@@ -126,8 +126,7 @@ fn execute_stmt(stmt: &mut Statement, table: &mut Table) {
             prepare_insert(&mut stmt.row, s);
             execute_insert(&stmt.row, table);
         }
-        StatementType::SELECT(s) => {
-            // println!("select stm: {}", &s);
+        StatementType::SELECT(_) => {
             execute_select(table);
         }
         StatementType::UNKNOWN(_) => {}
@@ -161,12 +160,12 @@ fn prepare_insert(row: &mut Row, input: &str) {
 
 fn execute_insert(row: &Row, table: &mut Table) -> ExecuteResult {
     if table.rows_count > TABLE_MAX_ROWS as u32 {
-        return ExecuteResult::EXECUTE_TABLE_FULL;
+        return ExecuteResult::ExecuteTableFull;
     }
     let (page_num, byte_offsets) = table.row_slot(table.rows_count);
     table.serialize_row(&row, page_num, byte_offsets);
     table.rows_count += 1;
-    ExecuteResult::EXECUTE_SUCCESS
+    ExecuteResult::ExecuteSuccess
 }
 
 fn execute_select(table: &mut Table) -> ExecuteResult {
@@ -174,5 +173,5 @@ fn execute_select(table: &mut Table) -> ExecuteResult {
         let (page_num, byte_offsets) = table.row_slot(i);
         &table.deserialize_row(page_num, byte_offsets).show();
     }
-    ExecuteResult::EXECUTE_SUCCESS
+    ExecuteResult::ExecuteSuccess
 }

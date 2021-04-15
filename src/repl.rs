@@ -2,7 +2,6 @@
 //! main loop
 
 use std::{
-    borrow::BorrowMut,
     io::{self, Write},
     process::exit,
 };
@@ -26,6 +25,7 @@ enum ExecuteResult {
     EXECUTE_TABLE_FULL,
 }
 
+#[derive(Debug)]
 enum StatementType<'a> {
     INSERT(&'a str),
     SELECT(&'a str),
@@ -33,6 +33,7 @@ enum StatementType<'a> {
     // Empty,
 }
 
+#[derive(Debug)]
 struct Statement<'a> {
     stm_type: StatementType<'a>,
     row: Row,
@@ -70,8 +71,10 @@ pub fn looper() -> io::Result<()> {
         }
         match check_stmt(&input_buf) {
             (PrepareState::SUCCESS, stm_type) => {
-                let stmt = Statement::new(stm_type);
-                execute_stmt(&stmt, &mut table);
+                // println!("stm-type: {:?}", stm_type);
+                let mut stmt = Statement::new(stm_type);
+
+                execute_stmt(&mut stmt, &mut table);
                 println!("Executed!");
                 continue;
             }
@@ -116,10 +119,13 @@ fn check_stmt(buf: &str) -> (PrepareState, StatementType) {
     (PrepareState::UNRECOGNIZED, StatementType::UNKNOWN(buf))
 }
 
-fn execute_stmt(stmt: &Statement, table: &mut Table) {
+fn execute_stmt(stmt: &mut Statement, table: &mut Table) {
+    // println!("stmt: {:?}", stmt);
+
     match stmt.stm_type {
         StatementType::INSERT(s) => {
-            println!("insert stm: {}", &s);
+            println!("insert stm: {}", s);
+            prepare_insert(&mut stmt.row, s);
             execute_insert(&stmt.row, table);
         }
         StatementType::SELECT(s) => {
@@ -130,17 +136,37 @@ fn execute_stmt(stmt: &Statement, table: &mut Table) {
     }
 }
 
+fn prepare_insert(row: &mut Row, input: &str) {
+    let tokens = input.split_whitespace().collect::<Vec<&str>>();
+    if tokens.len() > 4 {
+        println!("Expect 4 string, example: insert 1 xiaoming xiaoming@sina.com");
+        exit(1);
+    }
+    row.id = tokens[1].to_string().parse::<u32>().unwrap();
+
+    let name_bytes = tokens[2].as_bytes();
+    let namelen = name_bytes.len();
+    if namelen > USERNAME_SIZE {
+        println!("Username is too long!");
+        exit(1);
+    }
+    row.name[0..namelen].copy_from_slice(name_bytes);
+
+    let email_bytes = tokens[3].as_bytes();
+    let emaillen = email_bytes.len();
+    if emaillen > EMAIL_SIZE {
+        println!("Email is too long!");
+        exit(1);
+    }
+    row.email[0..emaillen].copy_from_slice(email_bytes);
+}
+
 fn execute_insert(row: &Row, table: &mut Table) -> ExecuteResult {
     if table.rows_count > TABLE_MAX_ROWS as u32 {
         return ExecuteResult::EXECUTE_TABLE_FULL;
     }
-    let r = Row {
-        id: row.id,
-        name: row.name,
-        email: row.email,
-    };
-    let (page_num, _) = table.row_slot(table.rows_count);
-    table.serialize_row(r, page_num);
+    let (page_num, byte_offsets) = table.row_slot(table.rows_count);
+    table.serialize_row(&row, page_num, byte_offsets);
     table.rows_count += 1;
     ExecuteResult::EXECUTE_SUCCESS
 }

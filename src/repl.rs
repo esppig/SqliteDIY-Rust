@@ -71,9 +71,7 @@ pub fn looper() -> io::Result<()> {
         }
         match check_stmt(&input_buf) {
             (PrepareState::SUCCESS, stm_type) => {
-                // println!("stm-type: {:?}", stm_type);
                 let mut stmt = Statement::new(stm_type);
-
                 execute_stmt(&mut stmt, &mut table);
                 println!("Executed!");
                 continue;
@@ -124,12 +122,12 @@ fn execute_stmt(stmt: &mut Statement, table: &mut Table) {
 
     match stmt.stm_type {
         StatementType::INSERT(s) => {
-            println!("insert stm: {}", s);
+            // println!("insert stm: {}", s);
             prepare_insert(&mut stmt.row, s);
             execute_insert(&stmt.row, table);
         }
         StatementType::SELECT(s) => {
-            println!("select stm: {}", &s);
+            // println!("select stm: {}", &s);
             execute_select(table);
         }
         StatementType::UNKNOWN(_) => {}

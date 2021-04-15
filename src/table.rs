@@ -47,10 +47,10 @@ impl Table {
         let page_num = row_count / ROWS_PER_PAGE as u32;
         let row_offset = row_count % ROWS_PER_PAGE as u32;
         let byte_offset = row_offset * ROW_SIZE as u32;
-        println!(
-            "slot: page_num={}, row_offset={}, byte_offset={}",
-            page_num, row_offset, byte_offset
-        );
+        // println!(
+        //     "slot: page_num={}, row_offset={}, byte_offset={}",
+        //     page_num, row_offset, byte_offset
+        // );
         self.get_page(page_num);
         return (page_num, byte_offset);
     }
@@ -63,7 +63,6 @@ impl Table {
             );
             std::process::exit(1);
         }
-
         if self.pages[page_num as usize].is_empty() {
             println!("page-> {} empty!", page_num);
             let page = vec![0u8; PAGE_SIZE as usize];
@@ -78,7 +77,7 @@ impl Table {
         let name_bytes = row.name;
         let email_bytes = row.email;
 
-        println!("{:?}, {:?}, {:?}", &id_bytes, &name_bytes, &email_bytes);
+        // println!("{:?}, {:?}, {:?}", &id_bytes, &name_bytes, &email_bytes);
 
         let offset = byte_offsets as usize;
 
@@ -95,7 +94,7 @@ impl Table {
         // self.pages[page_num as usize].extend_from_slice(&name_bytes);
         // self.pages[page_num as usize].extend_from_slice(&email_bytes);
 
-        println!("{:?}", &self.pages[page_num as usize]);
+        // println!("{:?}", &self.pages[page_num as usize]);
     }
 
     pub fn deserialize_row(&mut self, page_num: u32, byte_offsets: u32) -> Row {

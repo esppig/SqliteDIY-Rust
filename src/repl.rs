@@ -55,8 +55,9 @@ impl<'a> Statement<'a> {
     }
 }
 
-pub fn looper() -> io::Result<()> {
-    let mut table = Table::new();
+pub fn looper(filename: &str) -> io::Result<()> {
+    // let mut table = Table::new();
+    let mut table = Table::db_open(filename);
     let mut input_buf = String::new();
     loop {
         print!("sqlite > ");
@@ -65,7 +66,7 @@ pub fn looper() -> io::Result<()> {
         let _buf_len = io::stdin().read_line(&mut input_buf)?;
         input_buf.pop(); // pop "\n"
         if input_buf.starts_with(".") {
-            match do_meta_cmd(&input_buf) {
+            match do_meta_cmd(&input_buf, &mut table) {
                 MetaState::SUCCESS => {
                     continue;
                 }
@@ -94,8 +95,9 @@ pub fn looper() -> io::Result<()> {
     // Ok(())
 }
 
-fn do_meta_cmd(cmd: &str) -> MetaState {
+fn do_meta_cmd(cmd: &str, table: &mut Table) -> MetaState {
     if cmd == ".exit" || cmd == ".q" {
+        table.db_close();
         exit(0)
     }
     if cmd == ".tables" {

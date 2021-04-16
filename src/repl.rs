@@ -20,6 +20,12 @@ enum PrepareState {
     SyntaxError,
 }
 
+enum PrepareInsertResult {
+    Success,
+    SyntaxError,
+    ParamsTooLong,
+}
+
 enum ExecuteResult {
     ExecuteSuccess,
     ExecuteTableFull,
@@ -73,7 +79,6 @@ pub fn looper() -> io::Result<()> {
             (PrepareState::SUCCESS, stm_type) => {
                 let mut stmt = Statement::new(stm_type);
                 execute_stmt(&mut stmt, &mut table);
-                println!("Executed!");
                 continue;
             }
             (PrepareState::SyntaxError, _) => {
@@ -123,8 +128,10 @@ fn execute_stmt(stmt: &mut Statement, table: &mut Table) {
     match stmt.stm_type {
         StatementType::INSERT(s) => {
             // println!("insert stm: {}", s);
-            prepare_insert(&mut stmt.row, s);
-            execute_insert(&stmt.row, table);
+            if let PrepareInsertResult::Success = prepare_insert(&mut stmt.row, s) {
+                execute_insert(&stmt.row, table);
+                println!("Executed!");
+            }
         }
         StatementType::SELECT(_) => {
             execute_select(table);
@@ -133,11 +140,11 @@ fn execute_stmt(stmt: &mut Statement, table: &mut Table) {
     }
 }
 
-fn prepare_insert(row: &mut Row, input: &str) {
+fn prepare_insert(row: &mut Row, input: &str) -> PrepareInsertResult {
     let tokens = input.split_whitespace().collect::<Vec<&str>>();
     if tokens.len() > 4 {
         println!("Expect 4 string, example: insert 1 xiaoming xiaoming@sina.com");
-        exit(1);
+        return PrepareInsertResult::SyntaxError;
     }
     row.id = tokens[1].to_string().parse::<u32>().unwrap();
 
@@ -145,7 +152,7 @@ fn prepare_insert(row: &mut Row, input: &str) {
     let namelen = name_bytes.len();
     if namelen > USERNAME_SIZE {
         println!("Username is too long!");
-        exit(1);
+        return PrepareInsertResult::ParamsTooLong;
     }
     row.name[0..namelen].copy_from_slice(name_bytes);
 
@@ -153,9 +160,10 @@ fn prepare_insert(row: &mut Row, input: &str) {
     let emaillen = email_bytes.len();
     if emaillen > EMAIL_SIZE {
         println!("Email is too long!");
-        exit(1);
+        return PrepareInsertResult::ParamsTooLong;
     }
     row.email[0..emaillen].copy_from_slice(email_bytes);
+    return PrepareInsertResult::Success;
 }
 
 fn execute_insert(row: &Row, table: &mut Table) -> ExecuteResult {

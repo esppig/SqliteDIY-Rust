@@ -64,11 +64,11 @@ impl Table {
             std::process::exit(1);
         }
         if self.pages[page_num as usize].is_empty() {
-            println!("page-> {} empty!", page_num);
+            // println!("page-> {} empty!", page_num);
             let page = vec![0u8; PAGE_SIZE as usize];
             self.pages[page_num as usize].extend_from_slice(page.as_slice());
         } else {
-            println!("page-> {} alloced!", page_num);
+            // println!("page-> {} alloced!", page_num);
         }
     }
 

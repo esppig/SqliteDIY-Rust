@@ -1,7 +1,7 @@
 mod constants;
+mod cursor;
 mod repl;
 mod table;
-
 use repl::looper;
 
 fn main() {

@@ -1,5 +1,5 @@
 use crate::constants::*;
-use core::num;
+use crate::cursor::Cursor;
 use std::io::{Read, Seek, SeekFrom};
 use std::{
     fs::{File, OpenOptions},
@@ -162,6 +162,22 @@ impl Table {
         }
     }
 
+    // pub fn table_start(&self) -> Cursor {
+    //     Cursor {
+    //         table : self,
+    //         row_num: 0,
+    //         end_of_table: self.rows_count == 0
+    //     }
+    // }
+
+    // pub fn table_end(&self) -> Cursor {
+    //     Cursor {
+    //         table: self,
+    //         row_num: self.rows_count,
+    //         end_of_table: true
+    //     }
+    // }
+
     pub fn db_open(filename: &str) -> Table {
         let pager = Pager::new_from_file(filename);
         let rows_count = (pager.file_length / ROW_SIZE as u64) as u32;
@@ -172,10 +188,15 @@ impl Table {
         let page_num = row_count / ROWS_PER_PAGE as u32;
         let row_offset = row_count % ROWS_PER_PAGE as u32;
         let byte_offset = row_offset * ROW_SIZE as u32;
-        // println!(
-        //     "slot: page_num={}, row_offset={}, byte_offset={}",
-        //     page_num, row_offset, byte_offset
-        // );
+        self.pager.get_page(page_num);
+        return (page_num, byte_offset);
+    }
+
+    pub fn cursor_value(&mut self, cursor: &Cursor) -> (u32, u32) {
+        let row_num = cursor.row_num;
+        let page_num = row_num / ROWS_PER_PAGE as u32;
+        let row_offset = row_num % ROWS_PER_PAGE as u32;
+        let byte_offset = row_offset * ROW_SIZE as u32;
         self.pager.get_page(page_num);
         return (page_num, byte_offset);
     }
@@ -187,7 +208,7 @@ impl Table {
 
         // println!("{:?}, {:?}, {:?}", &id_bytes, &name_bytes, &email_bytes);
 
-        let offset = byte_offsets as usize;
+        // let offset = byte_offsets as usize;
 
         // self.pager.pages[page_num as usize][(offset + ID_OFFSET)..(offset + ID_OFFSET + ID_SIZE)]
         //     .copy_from_slice(&id_bytes);

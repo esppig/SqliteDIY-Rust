@@ -174,6 +174,10 @@ fn execute_insert(row: &Row, table: &mut Table) -> ExecuteResult {
     }
     let (page_num, byte_offsets) = table.row_slot(table.rows_count);
     table.serialize_row(&row, page_num, byte_offsets);
+    // let cursor = Cursor::table_end(table);
+    // let (page_num, byte_offsets) = table.cursor_value(&cursor);
+    // table.serialize_row(&row,page_num, byte_offsets);
+
     table.rows_count += 1;
     ExecuteResult::ExecuteSuccess
 }

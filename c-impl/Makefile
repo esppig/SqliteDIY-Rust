@@ -4,7 +4,7 @@ CFLAGS += -Wall -g
 TARGET = db
 
 $(TARGET):
-	$(CC) main.c -o $(TARGET)
+	$(CC) $(CFLAGS) main.c -o $(TARGET) -I .
 
 clean:
 	rm $(TARGET)

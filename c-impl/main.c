@@ -4,6 +4,8 @@
 #include <sys/types.h> // ssize_t
 #include <string.h>  // strcmp
 
+#include "table.h"
+
 // 输入缓冲
 typedef struct {
     char * buffer;  // 输入字符串
@@ -65,6 +67,7 @@ typedef enum {
 // 语句
 typedef struct {
     StatementType stm_type;
+    Row row_to_insert; // 插入行
 } Statement;
 
 // 处理元命令

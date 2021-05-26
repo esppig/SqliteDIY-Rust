@@ -53,7 +53,7 @@ void deserialize_row(void* src, Row* row) {
     memcpy(&(row->email), src+EMAIL_OFFSET, EMAIL_SIZE);
 }
 
-// 
+// 找到存放行记录的页中的slot位置
 void* row_slot(Table* table, uint32_t row_num) {
     // 找到行记录所在的页号[行记录数 / 每页存放的行记录数]
     uint32_t page_num = row_num / ROWS_PER_PAGE;

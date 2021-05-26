@@ -1,8 +1,6 @@
 #ifndef __CONST_H_
 #define __CONST_H_
 
-#include <stdint.h>
-
 // 硬编码表
 
 // id   username     email
@@ -20,13 +18,14 @@
 
 
 // Username字段的大小[byte]
-const int COLUMN_USERNAME_SIZE = 32;
+#define COLUMN_USERNAME_SIZE  32
 
 // Email字段的大小[byte]
-const int COLUMN_EMAIL_SIZE = 255;
+#define COLUMN_EMAIL_SIZE 255
 
 // 表能容纳的页数
-const int TABLE_MAX_PAGES = 100;
-
+// 之后使用树结构将不再设限[仅受限于文件的最大大小]
+// 但是依然会限制内存中使用的最大页数
+#define TABLE_MAX_PAGES 100
 
 #endif

@@ -10,4 +10,4 @@ clean:
 	rm $(TARGET)
 
 test:
-	mruby test.rb 
+	ruby test.rb 

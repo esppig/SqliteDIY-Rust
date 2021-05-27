@@ -30,7 +30,7 @@ void close_input_buffer(InputBuffer* ib) {
 
 // 输入的提示符
 void print_prompt() {
-    printf("db> ");
+    printf("db > ");
 }
 
 // 从标准输入读取到 InputBuffer
@@ -56,7 +56,9 @@ typedef enum {
 typedef enum {
     PREPARE_SUCCESS,  // prepare语句成功
     PREPARE_UNRECOGNIZED, // 无法识别的prepare语句
-    PREPARE_SYNTAX_ERROR // 语法错误
+    PREPARE_SYNTAX_ERROR, // 语法错误
+    PREPARE_STRING_TOO_LONG, // 字段超过最大长度
+    PREPARE_NEGATIVE_ID // ID数值为负数
 } PrepareResult ;
 
 // 语句类型
@@ -81,17 +83,50 @@ MetaCommandResult do_meta_command(InputBuffer* ib) {
     return META_COMMAND_UNRECOGNIZED;
 }
 
+PrepareResult prepare_insert(InputBuffer* ib, Statement* stm) {
+    stm->stm_type = STATEMENT_INSERT;
+
+    // 以 " " 分割字符串, strtok(NULL, " ") 逐个获取分割后的子字符串
+    strtok(ib->buffer, " ");
+    char* id_string = strtok(NULL, " ");
+    char* username = strtok(NULL, " ");
+    char* email = strtok(NULL, " ");
+
+    if (id_string == NULL || username == NULL || email == NULL) {
+        return PREPARE_SYNTAX_ERROR;
+    }
+
+    int id = atoi(id_string);
+    if (id < 0) {
+        return PREPARE_NEGATIVE_ID;
+    }
+    if (strlen(username) > COLUMN_USERNAME_SIZE) {
+        return PREPARE_STRING_TOO_LONG;
+    }
+    if (strlen(email) > COLUMN_EMAIL_SIZE) {
+        return PREPARE_STRING_TOO_LONG;
+    }
+
+    stm->row_to_insert.id = id;
+    strcpy(stm->row_to_insert.username, username);
+    strcpy(stm->row_to_insert.email, email);
+
+    return PREPARE_SUCCESS;
+}
+
 // prepare语句
 PrepareResult prepare_statement(InputBuffer* ib, Statement* stm) {
     // 比较前 n 个字符
     if (strncmp(ib->buffer, "insert", 6) == 0) {
-        stm->stm_type = STATEMENT_INSERT;
-        int args_assigned = sscanf(ib->buffer, "insert %d %s %s", 
-            &(stm->row_to_insert.id), stm->row_to_insert.username, stm->row_to_insert.email);
-        if (args_assigned < 3) {
-            return PREPARE_SYNTAX_ERROR;
-        }
-        return PREPARE_SUCCESS;
+        // stm->stm_type = STATEMENT_INSERT;
+        // * scanf 缺陷：如果输入大于缓冲区，会造成 缓冲区溢出
+        // int args_assigned = sscanf(ib->buffer, "insert %d %s %s",
+        //     &(stm->row_to_insert.id), stm->row_to_insert.username, stm->row_to_insert.email);
+        // if (args_assigned < 3) {
+        //     return PREPARE_SYNTAX_ERROR;
+        // }
+        // return PREPARE_SUCCESS;
+        return prepare_insert(ib, stm);
     }
 
     if (strncmp(ib->buffer, "select", 6) == 0) {
@@ -166,6 +201,12 @@ int main(int argc, char* argv[]) {
             break;
         case PREPARE_SYNTAX_ERROR:
             printf("Syntax error. Could not parse statement.\n");
+            continue;
+        case PREPARE_STRING_TOO_LONG:
+            printf("String is too long.\n");
+            continue;
+        case PREPARE_NEGATIVE_ID:
+            printf("ID must be positive.\n");
             continue;
         case PREPARE_UNRECOGNIZED:
             printf("Unrecognized keyword at start of '%s'.\n", ib->buffer);

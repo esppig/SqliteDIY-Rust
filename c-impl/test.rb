@@ -1,4 +1,6 @@
-#/usr/bin/env mruby
+#/usr/bin/env ruby
+
+require 'benchmark'
 
 $target = "./db"
 
@@ -7,84 +9,112 @@ def echo(cmd)
     return f.readlines
 end
 
-def run_script(commands)
+def run_cmds(commands)
     raw_output = nil
-    IO.popen("./db", "r+") do |pipe|
-      commands.each do |cmd|
-        pipe.puts cmd
-      end
+    IO.popen($target, "r+") do |pipe|
+        commands.each do |cmd|
+            pipe.puts cmd
+        end
 
-      pipe.close_write
+        pipe.close_write
 
-      # Read entire output
-      raw_output = pipe.gets(nil)
+        # Read entire output
+        raw_output = pipe.gets(nil)
     end
-    raw_output.split("\n")
-    puts raw_output
-  end
+    if raw_output != nil
+        return raw_output.split("\n")
+    end
+    return nil
+end
+
+def expect_match_array(arr1, arr2)
+    if arr1.length != arr2.length
+        puts "length not equal!!"
+        return false
+    end
+    arr1.each_with_index do |v, i|
+        if v != arr2[i]
+            return false
+        end
+    end
+    return true
+end
+
+def expect_eq(str1, str2)
+    if str1 == str2
+        return true
+    end
+    return false
+end
 
 def test1()
-    res = echo(".test")
-    # puts res
-
-    # res.each do |msg|
-    #     puts msg
-    # end
-
-    if res[0] == "db> Unrecoginzed command '.test'. \n" and
-        res[1] == "db> Error reading input\n"
-        puts "OK!"
-    end
-
-    res = echo(".exit")
-
-    if res[0] == "db> "
-        puts "OK!!"
-    end
-end
-
-def test2()
-    res = echo("insert foo bar")
-    if res[0] == "db> This is where we would do an insert.\n" and
-        res[1] == "Executed.\n"
-        puts "OK!"
-    end
-
-    res = echo("delete foo")
-    if res[0] == "db> Unrecognized keyword at start of 'delete foo'.\n"
-        puts "OK!"
-    end
-
-    res = echo("select")
-    if res[0] == "db> This is where we would do a select.\n" and
-        res[1] == "Executed.\n"
-        puts "OK!"
-    end
-
-    res = echo(".tables")
-    if res[0] == "db> Unrecognized command '.tables'\n" and
-        puts "OK!"
-    end
-
-    res = echo(".exit")
-    if res[0] == "db> "
-        puts "OK!!"
-    end
-end
-
-def test3()
     cmds = [
         "insert 1 user1 person1@example.com",
         "select",
         ".exit",
-      ]
-    results = run_script(cmds)
+    ]
+    ress = [
+        "db > Executed.",
+        "db > (1, user1, person1@example.com)",
+        "Executed.",
+        "db > ",
+    ]
+    result = run_cmds(cmds)
+    if result == nil
+        puts "test failed! result is nil."
+        return
+    end
+    if expect_match_array(result, ress)
+        puts "test pass! OK!!"
+        return
+    end
+    puts "test failed!"
+
+    puts "====="
+    puts result
+    puts "====="
+    puts ress
+    puts "====="
 end
 
-def test() 
-    # test1()
-    # test2()
-    test3()
+def test2()
+    # cmds = (1..1401).map do |i|
+    #     "insert #{i} user#{i} person#{i}@example.com"
+    # end
+    username = "xxxxxaaaaavvvvvsssssqqqqqwwwwwsd"
+    email = "test@xx.com"
+    cmds = [
+        "insert 1 #{username} #{email}",
+        "select",
+    ]
+    cmds << ".exit"
+
+    ress = [
+        "db > Executed.",
+        "db > (1, #{username}, #{email})",
+        "Executed.",
+        "db > ",
+    ]
+
+    result = run_cmds(cmds)
+    if result == nil
+        puts "test failed! result is nil."
+        return
+    end
+    if expect_match_array(result, ress)
+        puts "test pass! OK!!"
+        return
+    end
+    puts "test failed!"
+end
+
+def test()
+    puts Benchmark.measure {
+        test1()
+    }
+    puts Benchmark.measure {
+        test2()
+    }
 end
 
 test

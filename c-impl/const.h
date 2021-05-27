@@ -1,6 +1,9 @@
 #ifndef __CONST_H_
 #define __CONST_H_
 
+
+#include <stdint.h>
+
 // 硬编码表
 
 // id   username     email
@@ -27,5 +30,7 @@
 // 之后使用树结构将不再设限[仅受限于文件的最大大小]
 // 但是依然会限制内存中使用的最大页数
 #define TABLE_MAX_PAGES 100
+
+extern const uint32_t TABLE_MAX_ROWS;
 
 #endif

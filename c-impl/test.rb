@@ -56,9 +56,65 @@ def test2()
     end
 end
 
+def test3()
+    res = echo("insert 1 c/c++ xiaoming@qq.com")
+    if res[0] == "db> Executed.\n"
+        puts "OK!"
+    end
+
+    res = echo("insert 2 rust xiaohui@qq.com")
+    if res[0] == "db> Executed.\n"
+        puts "OK!"
+    end
+
+    res = echo("insert 3 haskell xiaobai@qq.com")
+    if res[0] == "db> Executed.\n"
+        puts "OK!"
+    end
+
+    res = echo("select")
+    if res[0] == "db> Executed.\n"
+        puts "OK!"
+    end
+
+    res = echo(".exit")
+    puts res
+    if res[0] == "db> "
+        puts "OK!!"
+    end
+
+end
+
+def testx()
+    IO.popen($target, "r+") do |pipe|
+
+        pipe.write "select\n"
+        3.times {puts pipe.gets }
+
+        pipe.write "insert 1 cc xiaoming@cell.com\n"
+        3.times {puts pipe.gets}
+
+        pipe.write ".exit\n"
+
+        # pipe.puts "select\n"
+        # pipe.puts "__END__"
+        # pipe.gets
+
+        # pipe.puts "insert 1 cc xiaoming@cell.com\n"
+        # pipe.puts "__END__"
+        # pipe.gets
+
+        # pipe.puts "select\n"
+        # pipe.puts "__END__"
+        # pipe.gets
+    end
+end
+
 def test() 
     # test1()
-    test2()
+    # test2()
+    # test3()
+    testx
 end
 
 test

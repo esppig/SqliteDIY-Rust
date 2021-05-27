@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include "const.h"
 #include "table.h"
@@ -38,6 +39,7 @@ const uint32_t ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
 
 // 一张表能存放的最大记录
 const uint32_t TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES;
+
 // 将 Row数据 序列化
 void serialize_row(Row* row, void* dst) {
     // 从src 复制 N 个字节 到 dst
@@ -68,4 +70,27 @@ void* row_slot(Table* table, uint32_t row_num) {
     // 字节偏移量 [行记录的偏移位置 * 行记录的大小]
     uint32_t byte_offset = row_offset * ROW_SIZE;
     return page+byte_offset;
+}
+
+// 创建新表
+Table* new_table() {
+    Table* table = malloc(sizeof(Table));
+    table->num_rows = 0;
+    for (uint32_t i = 0; i < TABLE_MAX_PAGES; i++) {
+        table->pages[i] = NULL;
+    }
+    return table;
+}
+
+// 释放表占用的内存
+void free_table(Table* table) {
+    for (uint32_t i = 0; i < TABLE_MAX_PAGES; i++) {
+        free(table->pages[i]);
+    }
+    free(table);
+}
+
+// 打印行记录
+void print_row(Row* row) {
+    printf("(%d, %s, %s)\n", row->id, row->username, row->email);
 }

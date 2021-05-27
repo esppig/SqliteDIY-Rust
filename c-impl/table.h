@@ -28,4 +28,13 @@ void deserialize_row(void* src, Row* row);
 // 找到存放行记录的页中的slot位置
 void* row_slot(Table* table, uint32_t row_num);
 
+// 创建新表
+Table* new_table();
+
+// 释放表占用的内存
+void free_table(Table* table);
+
+// 打印行记录
+void print_row(Row* row);
+
 #endif

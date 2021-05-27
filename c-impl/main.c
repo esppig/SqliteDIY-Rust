@@ -55,7 +55,8 @@ typedef enum {
 // Prepare语句的执行结果
 typedef enum {
     PREPARE_SUCCESS,  // prepare语句成功
-    PREPARE_UNRECOGNIZED // 无法识别的prepare语句
+    PREPARE_UNRECOGNIZED, // 无法识别的prepare语句
+    PREPARE_SYNTAX_ERROR // 语法错误
 } PrepareResult ;
 
 // 语句类型
@@ -85,6 +86,11 @@ PrepareResult prepare_statement(InputBuffer* ib, Statement* stm) {
     // 比较前 n 个字符
     if (strncmp(ib->buffer, "insert", 6) == 0) {
         stm->stm_type = STATEMENT_INSERT;
+        int args_assigned = sscanf(ib->buffer, "insert %d %s %s", 
+            &(stm->row_to_insert.id), stm->row_to_insert.username, stm->row_to_insert.email);
+        if (args_assigned < 3) {
+            return PREPARE_SYNTAX_ERROR;
+        }
         return PREPARE_SUCCESS;
     }
 
@@ -95,19 +101,46 @@ PrepareResult prepare_statement(InputBuffer* ib, Statement* stm) {
     return PREPARE_UNRECOGNIZED;
 }
 
+typedef enum {
+    EXECUTE_SUCCESS,
+    EXECUTE_TABLE_FULL
+} ExecuteResult;
+
+// 执行插入语句
+ExecuteResult execute_insert(Statement* stm, Table* table) {
+    if (table->num_rows > TABLE_MAX_ROWS) {
+        return EXECUTE_TABLE_FULL;
+    }
+    Row* row = &(stm->row_to_insert);
+    serialize_row(row, row_slot(table, table->num_rows));
+    table->num_rows += 1;
+    return EXECUTE_SUCCESS;
+}
+
+// 执行查询语句
+ExecuteResult execute_select(Statement* stm, Table* table) {
+    Row row;
+    for (uint32_t i = 0; i < table->num_rows; i++) {
+        deserialize_row(row_slot(table, i), &row);
+        print_row(&row);
+    }
+    return EXECUTE_SUCCESS;
+}
+
 // 执行语句
-void execute_statement(Statement* stm) {
+ExecuteResult execute_statement(Statement* stm, Table* table) {
     switch (stm->stm_type) {
     case (STATEMENT_INSERT):
-      printf("This is where we would do an insert.\n");
-      break;
+      return execute_insert(stm, table);
     case (STATEMENT_SELECT):
-      printf("This is where we would do a select.\n");
-      break;
+      return execute_select(stm, table);
   }
 }
 
 int main(int argc, char* argv[]) {
+    // 创建一张表
+    Table *table = new_table();
+    // 新建输入buf
     InputBuffer * ib = new_input_buffer();
     while (true) {
         print_prompt();
@@ -131,6 +164,9 @@ int main(int argc, char* argv[]) {
         {
         case PREPARE_SUCCESS:
             break;
+        case PREPARE_SYNTAX_ERROR:
+            printf("Syntax error. Could not parse statement.\n");
+            continue;
         case PREPARE_UNRECOGNIZED:
             printf("Unrecognized keyword at start of '%s'.\n", ib->buffer);
             continue;
@@ -138,7 +174,16 @@ int main(int argc, char* argv[]) {
             break;
         }
 
-        execute_statement(&stm);
-        printf("Executed.\n");
+        switch (execute_statement(&stm, table))
+        {
+        case EXECUTE_SUCCESS:
+            printf("Executed.\n");
+            break;
+        case EXECUTE_TABLE_FULL:
+            printf("Error: Table full.\n");
+            break;
+        default:
+            break;
+        }
     }
 }

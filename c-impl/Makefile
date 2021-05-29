@@ -4,7 +4,7 @@ CFLAGS += -Wall -g
 TARGET = db
 
 $(TARGET):
-	$(CC) $(CFLAGS) main.c table.c -o $(TARGET) -I .
+	$(CC) $(CFLAGS) main.c table.c cursor.c -o $(TARGET) -I .
 
 clean:
 	rm $(TARGET)

@@ -1,7 +1,6 @@
 #ifndef __TABLE_H_
 #define __TABLE_H_
 
-#include <stdint.h>
 #include "const.h"
 
 // 页结构 抽象一个Pager的概念，管理所有的页[内存/磁盘]
@@ -51,5 +50,9 @@ void print_row(Row* row);
 
 // 关闭数据库
 void db_close(Table* table);
+
+// 页缓存未命中时，申请内存
+// 当flush时，讲数据刷到磁盘文件中
+void* get_page(Pager* pager, uint32_t page_num);
 
 #endif

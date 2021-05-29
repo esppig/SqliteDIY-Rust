@@ -4,7 +4,7 @@
 #include <sys/types.h> // ssize_t
 #include <string.h>  // strcmp
 
-#include "table.h"
+#include "cursor.h"
 
 // 输入缓冲
 typedef struct {
@@ -142,24 +142,41 @@ typedef enum {
     EXECUTE_TABLE_FULL
 } ExecuteResult;
 
-// 执行插入语句
+
+// 执行插入语句, 使用光标
 ExecuteResult execute_insert(Statement* stm, Table* table) {
     if (table->num_rows > TABLE_MAX_ROWS) {
         return EXECUTE_TABLE_FULL;
     }
+    // 要插入的行记录
     Row* row = &(stm->row_to_insert);
-    serialize_row(row, row_slot(table, table->num_rows));
+    // @ 获取表尾光标 [在表的最后一条记录位置的后面插入]
+    Cursor* cursor = table_end(table);
+    // serialize_row(row, row_slot(table, table->num_rows));
+    serialize_row(row, cursor_value(cursor));
     table->num_rows += 1;
+    // 释放光标
+    free(cursor);
     return EXECUTE_SUCCESS;
 }
 
-// 执行查询语句
+// 执行查询语句, 使用光标
 ExecuteResult execute_select(Statement* stm, Table* table) {
+    // @ 获取表头光标
+    Cursor* cursor = table_start(table);
     Row row;
-    for (uint32_t i = 0; i < table->num_rows; i++) {
-        deserialize_row(row_slot(table, i), &row);
+    // for (uint32_t i = 0; i < table->num_rows; i++) {
+    //     deserialize_row(row_slot(table, i), &row);
+    //     print_row(&row);
+    // }
+    while (!(cursor->end_of_table)) {
+        // 未达到表尾
+        deserialize_row(cursor_value(cursor), &row);
         print_row(&row);
+        cursor_advance(cursor);
     }
+    // 释放光标
+    free(cursor);
     return EXECUTE_SUCCESS;
 }
 

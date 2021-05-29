@@ -176,7 +176,7 @@ void* row_slot(Table* table, uint32_t row_num) {
     return page+byte_offset;
 }
 
-// 将页内容到磁盘
+// 将页内容刷到磁盘
 // 目前的设计文件长度和行记录条数相关，因此需要计算文件最后的部分页
 void pager_flush(Pager* pager, uint32_t page_num, uint32_t size) {
     if (pager->pages[page_num] == NULL) {

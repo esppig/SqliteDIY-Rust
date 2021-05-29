@@ -31,6 +31,12 @@
 // 但是依然会限制内存中使用的最大页数
 #define TABLE_MAX_PAGES 100
 
+extern const uint32_t ROW_SIZE;
+
+extern const uint32_t PAGE_SIZE;
+
+extern const uint32_t ROWS_PER_PAGE;
+
 extern const uint32_t TABLE_MAX_ROWS;
 
 #endif

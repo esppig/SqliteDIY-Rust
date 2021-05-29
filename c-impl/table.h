@@ -4,11 +4,19 @@
 #include <stdint.h>
 #include "const.h"
 
+// 页结构 抽象一个Pager的概念，管理所有的页[内存/磁盘]
+typedef struct
+{
+    int fd; // 文件描述符
+    uint32_t file_length; // 文件长度
+    void* pages[TABLE_MAX_PAGES]; // 页数组
+} Pager;
+ 
 // Table结构
 typedef struct
 {
     uint32_t num_rows; // 表中的记录条数
-    void* pages[TABLE_MAX_PAGES]; // 页数组
+    Pager* pager;  // 页结构指针
 } Table;
 
 // 行记录结构
@@ -30,12 +38,18 @@ void deserialize_row(void* src, Row* row);
 void* row_slot(Table* table, uint32_t row_num);
 
 // 创建新表
-Table* new_table();
+// Table* new_table();
+
+// 打开DB文件
+Table* db_open(const char* filename);
 
 // 释放表占用的内存
-void free_table(Table* table);
+// void free_table(Table* table);
 
 // 打印行记录
 void print_row(Row* row);
+
+// 关闭数据库
+void db_close(Table* table);
 
 #endif

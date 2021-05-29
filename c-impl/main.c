@@ -74,9 +74,10 @@ typedef struct {
 } Statement;
 
 // 处理元命令
-MetaCommandResult do_meta_command(InputBuffer* ib) {
+MetaCommandResult do_meta_command(InputBuffer* ib, Table* table) {
     if (strcmp(ib->buffer, ".exit") == 0) {
         close_input_buffer(ib);
+        db_close(table);
         exit(EXIT_SUCCESS);
         // return META_COMMAND_SUCCESS;
     }
@@ -173,8 +174,14 @@ ExecuteResult execute_statement(Statement* stm, Table* table) {
 }
 
 int main(int argc, char* argv[]) {
-    // 创建一张表
-    Table *table = new_table();
+    if (argc < 2) {
+        printf("Must supply a database filename.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    char* filename = argv[1];
+    Table* table = db_open(filename);
+
     // 新建输入buf
     InputBuffer * ib = new_input_buffer();
     while (true) {
@@ -182,7 +189,7 @@ int main(int argc, char* argv[]) {
         read_input(ib);
 
         if (ib->buffer[0] == '.') {
-            switch (do_meta_command(ib))
+            switch (do_meta_command(ib, table))
             {
             case META_COMMAND_SUCCESS:
                 continue;

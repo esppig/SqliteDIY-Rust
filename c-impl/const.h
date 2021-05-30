@@ -31,12 +31,34 @@
 // 但是依然会限制内存中使用的最大页数
 #define TABLE_MAX_PAGES 100
 
+extern const uint32_t ID_SIZE;
+
+// Username字段大小[byte]
+extern const uint32_t USERNAME_SIZE;
+
+// Email字段大小[byte]
+extern const uint32_t EMAIL_SIZE;
+
+// ID的偏移量
+extern const uint32_t ID_OFFSET;
+
+// Username的偏移量
+extern const uint32_t USERNAME_OFFSET;
+
+// Email的偏移量
+extern const uint32_t EMAIL_OFFSET;
+
+// 一行的大小
 extern const uint32_t ROW_SIZE;
 
+// 一页的大小[byte]
+// 4096字节和大部分操作系统的虚拟内存页大小一致, 在内存页扇入扇出时，不会产生数据分裂
 extern const uint32_t PAGE_SIZE;
 
+// 一页能存放多少条记录
 extern const uint32_t ROWS_PER_PAGE;
 
+// 一张表能存放的最大记录
 extern const uint32_t TABLE_MAX_ROWS;
 
 #endif

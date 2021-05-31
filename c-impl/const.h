@@ -51,48 +51,33 @@ typedef struct
 #endif
 
 #define ID_SIZE sizeof(uint32_t)
+
+// Username字段大小[byte]
 #define USERNAME_SIZE (COLUMN_USERNAME_SIZE + 1)
+
+// Email字段大小[byte]
 #define EMAIL_SIZE (COLUMN_EMAIL_SIZE + 1)
 
+// ID的偏移量
 #define ID_OFFSET 0
+
+// Username的偏移量
 #define USERNAME_OFFSET (ID_OFFSET + ID_SIZE)
+
+// Email的偏移量
 #define EMAIL_OFFSET (USERNAME_OFFSET + USERNAME_SIZE)
+
+// 一条行记录的大小
 #define ROW_SIZE (ID_SIZE + USERNAME_SIZE + EMAIL_SIZE)
 
+// 一页的大小[byte]
+// 4096字节和大部分操作系统的虚拟内存页大小一致, 在内存页扇入扇出时，不会产生数据分裂
 #define PAGE_SIZE 4096
 
+// 一页能存放多少条记录
 #define ROWS_PER_PAGE (PAGE_SIZE / ROW_SIZE)
 
+// 一张表能存放的最大记录
 #define TABLE_MAX_ROWS (ROWS_PER_PAGE * TABLE_MAX_PAGES)
-
-// extern const uint32_t ID_SIZE;
-
-// // Username字段大小[byte]
-// extern const uint32_t USERNAME_SIZE;
-
-// // Email字段大小[byte]
-// extern const uint32_t EMAIL_SIZE;
-
-// // ID的偏移量
-// extern const uint32_t ID_OFFSET;
-
-// // Username的偏移量
-// extern const uint32_t USERNAME_OFFSET;
-
-// // Email的偏移量
-// extern const uint32_t EMAIL_OFFSET;
-
-// // 一行的大小
-// extern const uint32_t ROW_SIZE;
-
-// // 一页的大小[byte]
-// // 4096字节和大部分操作系统的虚拟内存页大小一致, 在内存页扇入扇出时，不会产生数据分裂
-// extern const uint32_t PAGE_SIZE;
-
-// // 一页能存放多少条记录
-// extern const uint32_t ROWS_PER_PAGE;
-
-// // 一张表能存放的最大记录
-// extern const uint32_t TABLE_MAX_ROWS;
 
 #endif

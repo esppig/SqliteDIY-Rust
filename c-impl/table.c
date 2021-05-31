@@ -13,36 +13,9 @@
 // const uint32_t USERNAME_SIZE = size_of_attribute(Row, username);
 // const uint32_t EMAIL_SIZE = size_of_attribute(Row, email);
 
-// // ID字段大小[byte] 复合字面量
 // const uint32_t ID_SIZE = sizeof((Row){.id=0, .username={}, .email={}}.id);
-
-// // Username字段大小[byte]
 // const uint32_t USERNAME_SIZE = sizeof((Row){0, {}, {}}.username);
-
-// // Email字段大小[byte]
 // const uint32_t EMAIL_SIZE = sizeof((Row){0, {}, {}}.email);
-
-// // ID的偏移量
-// const uint32_t ID_OFFSET = 0;
-
-// // Username的偏移量
-// const uint32_t USERNAME_OFFSET = ID_OFFSET + ID_SIZE;
-
-// // Email的偏移量
-// const uint32_t EMAIL_OFFSET = USERNAME_OFFSET + USERNAME_SIZE;
-
-// // 一行的大小
-// const uint32_t ROW_SIZE = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
-
-// // 一页的大小[byte]
-// // 4096字节和大部分操作系统的虚拟内存页大小一致, 在内存页扇入扇出时，不会产生数据分裂
-// const uint32_t PAGE_SIZE = 4096;
-
-// // 一页能存放多少条记录
-// const uint32_t ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
-
-// // 一张表能存放的最大记录
-// const uint32_t TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES;
 
 // 将 Row数据 序列化
 void serialize_row(Row* row, void* dst) {

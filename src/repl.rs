@@ -172,8 +172,13 @@ fn execute_insert(row: &Row, table: &mut Table) -> ExecuteResult {
     if table.rows_count > TABLE_MAX_ROWS as u32 {
         return ExecuteResult::ExecuteTableFull;
     }
+    
+    // * 无光标
     let (page_num, byte_offsets) = table.row_slot(table.rows_count);
     table.serialize_row(&row, page_num, byte_offsets);
+
+    // ! 双重可变引用错误
+    // * 加入光标: 在表的末尾创建光标, 获取表中光标位置的偏移, 将记录数据序列化
     // let cursor = Cursor::table_end(table);
     // let (page_num, byte_offsets) = table.cursor_value(&cursor);
     // table.serialize_row(&row,page_num, byte_offsets);

@@ -18,6 +18,8 @@ typedef struct
     Pager* pager;  // 页结构指针
 } Table;
 
+#if !defined(SQLITE_STRUCT_ROW)
+#define SQLITE_STRUCT_ROW
 // 行记录结构
 typedef struct
 {
@@ -26,6 +28,7 @@ typedef struct
     char username[COLUMN_USERNAME_SIZE+1];
     char email[COLUMN_EMAIL_SIZE+1];
 } Row;
+#endif
 
 // 将 Row数据 序列化
 void serialize_row(Row* row, void* dst);

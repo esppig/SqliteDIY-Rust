@@ -170,32 +170,39 @@ PrepareResult prepare_statement(InputBuffer* ib, Statement* stm) {
 }
 
 typedef enum {
-    EXECUTE_SUCCESS,
-    EXECUTE_TABLE_FULL
+    EXECUTE_SUCCESS,  // 执行成功
+    EXECUTE_TABLE_FULL,  // 表空间满了
+    EXECUTE_DUPLICATE_KEY // 键重复
 } ExecuteResult;
 
 
 // 执行插入语句, 使用光标
-// 目前Btree为单节点
+// 改进插入方法，搜索正确的插入位置[而不是直接加到末尾]
 ExecuteResult execute_insert(Statement* stm, Table* table) {
-    // if (table->num_rows > TABLE_MAX_ROWS) {
-    //     return EXECUTE_TABLE_FULL;
-    // }
-
+    // 目前采用单节点[单页]
     void* node = get_page(table->pager, table->root_page_num);
-    if ((*leaf_node_num_cells(node)) >= LEAF_NODE_MAX_CELLS) {
+    uint32_t num_cells = *leaf_node_num_cells(node);
+    if (num_cells >= LEAF_NODE_MAX_CELLS) {
         return EXECUTE_TABLE_FULL;
     }
 
     // 要插入的行记录
     Row* row = &(stm->row_to_insert);
-    // @ 获取表尾光标 [在表的最后一条记录位置的后面插入]
-    Cursor* cursor = table_end(table);
-    // serialize_row(row, cursor_value(cursor));
-    // table->num_rows += 1;
+
+    // 要插入的cell键
+    uint32_t key_to_insert = row->id;
+
+    // 返回给定cell键在树中的位置光标
+    Cursor* cursor = table_find(table, key_to_insert);
     
+    if (cursor->cell_num < num_cells) {
+        uint32_t key_at_index = *leaf_node_key(node, cursor->cell_num);
+        if (key_at_index == key_to_insert) {
+            return EXECUTE_DUPLICATE_KEY;
+        }
+    }
     // 在Btree节点中插入row
-    lead_node_insert(cursor, row->id, row);
+    leaf_node_insert(cursor, row->id, row);
 
     // 释放光标
     free(cursor);
@@ -288,6 +295,9 @@ int main(int argc, char* argv[]) {
             break;
         case EXECUTE_TABLE_FULL:
             printf("Error: Table full.\n");
+            break;
+        case EXECUTE_DUPLICATE_KEY:
+            printf("Error: Duplicate key.\n");
             break;
         default:
             break;

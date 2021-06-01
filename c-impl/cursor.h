@@ -35,7 +35,7 @@ void* cursor_value(Cursor* cursor);
 // 移动光标到下一条记录
 void cursor_advance(Cursor* cursor);
 
-// 插入cell到节点
-void lead_node_insert(Cursor* cursor, uint32_t key, Row* value);
+// 返回给定cell键的位置光标, 如果未找到, 则返回应该插入的位置
+Cursor* table_find(Table* table, uint32_t key);
 
 #endif

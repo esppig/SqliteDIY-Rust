@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "cursor.h"
 #include "btree.h"
 
@@ -31,6 +32,18 @@ Cursor* table_end(Table* table) {
 
     cursor->end_of_table = true;
     return cursor;
+}
+
+// 返回给定cell键的位置光标, 如果未找到, 则返回应该插入的位置
+Cursor* table_find(Table* table, uint32_t key) {
+    uint32_t root_page_num = table->root_page_num;
+    void* root_node = get_page(table->pager, root_page_num);
+
+    if (get_node_type(root_node) == NODE_LEAF) {
+        return leaf_node_find(table, root_page_num, key);
+    }
+    printf("Need to implement searching an internal node\n");
+    exit(EXIT_FAILURE);
 }
 
 // 取代 row_slot 函数 获取page

@@ -10,6 +10,67 @@ typedef enum {
     NODE_LEAF // 叶子节点
 } NodeType;
 
+
+// 标识节点类型
+extern const uint32_t NODE_TYPE_SIZE;
+
+// 节点类型的偏移量
+extern const uint32_t NODE_TYPE_OFFSET;
+
+// 标识是否为根节点
+extern const uint32_t IS_ROOT_SIZE;
+
+// 标识是否为根节点的偏移量
+extern const uint32_t IS_ROOT_OFFSET;
+
+// 父节点指针
+extern const uint32_t PARENT_POINT_SIZE;
+
+// 父节点指针偏移量
+extern const uint32_t PARENT_POINT_OFFSET;
+
+// 通用节点头部大小
+extern const uint32_t COMMON_NODE_HEADER_SIZE;
+
+// * =====
+// * Leaf Node Format
+// * 除了 通用头节点信息, 叶节点还需要存储自身包含的 cell [ k/v pairs ] 数量
+// * =====
+
+// 标识叶节点cell数量
+extern const uint32_t LEAF_NODE_NUMS_CELLS_SIZE;
+
+// 叶节点cell数量的偏移量
+extern const uint32_t LEAF_NODE_NUMS_CELLS_OFFSET;
+
+// 叶节点头部大小
+extern const uint32_t LEAF_NODE_HEADER_SIZE;
+
+// * =====
+// * Leaf Node Body Layout
+// * 叶节点体布局, 是cell数组
+// * =====
+
+// 叶节点的键
+extern const uint32_t LEAF_NODE_KEY_SIZE;
+
+// 叶节点键的偏移量
+extern const uint32_t LEAF_NODE_KEY_OFFSET;
+
+// 叶节点的值[行记录]
+extern const uint32_t LEAF_NODE_VALUE_SIZE;
+
+// 叶节点的值偏移量
+extern const uint32_t LEAF_NODE_VALUE_OFFSET;
+
+// 叶节点cell的大小
+extern const uint32_t LEAF_NODE_CELL_SIZE;
+
+// 单页 叶节点cells的最大空间
+// 当剩余空间无法放下完整cell的时候，我们放弃剩下的空间，避免将cell分裂到不同的节点
+extern const uint32_t LEAF_NODE_SPACE_FOR_CELLS;
+
+// 叶节点最大cells数量
 extern const uint32_t LEAF_NODE_MAX_CELLS;
 
 // 返回叶节点的cell数量

@@ -74,6 +74,16 @@ typedef struct {
     Row row_to_insert; // 插入行
 } Statement;
 
+// 打印常量
+void print_constants() {
+    printf("ROW_SIZE: %lu\n", ROW_SIZE);
+    printf("COMMON_NODE_HEADER_SIZE: %d\n", COMMON_NODE_HEADER_SIZE);
+    printf("LEAF_NODE_HEADER_SIZE: %d\n", LEAF_NODE_HEADER_SIZE);
+    printf("LEAF_NODE_CELL_SIZE: %d\n", LEAF_NODE_CELL_SIZE);
+    printf("LEAF_NODE_SPACE_FOR_CELLS: %d\n", LEAF_NODE_SPACE_FOR_CELLS);
+    printf("LEAF_NODE_MAX_CELLS: %d\n", LEAF_NODE_MAX_CELLS);
+}
+
 // 处理元命令
 MetaCommandResult do_meta_command(InputBuffer* ib, Table* table) {
     if (strcmp(ib->buffer, ".exit") == 0) {
@@ -81,6 +91,11 @@ MetaCommandResult do_meta_command(InputBuffer* ib, Table* table) {
         db_close(table);
         exit(EXIT_SUCCESS);
         // return META_COMMAND_SUCCESS;
+    }
+    if (strcmp(ib->buffer, ".constants") == 0) {
+        printf("Constants:\n");
+        print_constants();
+        return META_COMMAND_SUCCESS;
     }
     return META_COMMAND_UNRECOGNIZED;
 }
@@ -165,7 +180,7 @@ ExecuteResult execute_insert(Statement* stm, Table* table) {
     
     // 在Btree节点中插入row
     lead_node_insert(cursor, row->id, row);
-    
+
     // 释放光标
     free(cursor);
     return EXECUTE_SUCCESS;

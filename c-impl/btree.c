@@ -1,3 +1,6 @@
+#include <stdlib.h>  // EXIT_FAILURE
+#include <stdio.h>
+#include <string.h>
 #include "btree.h"
 
 // * =====
@@ -78,4 +81,52 @@ uint32_t* leaf_node_num_cells(void* node) {
 // 返回叶节点的cells
 void* leaf_node_cell(void* node, uint32_t cell_num) {
     return node + LEAF_NODE_HEADER_SIZE + cell_num * LEAF_NODE_CELL_SIZE;
+}
+
+// 叶节点的键[cell以key开头]
+uint32_t* leaf_node_key(void* node, uint32_t cell_num) {
+    return leaf_node_cell(node, cell_num);
+}
+
+// 叶节点的cell值[键+偏移]
+void* leaf_node_value(void* node, uint32_t cell_num) {
+    return leaf_node_cell(node, cell_num) + LEAF_NODE_KEY_SIZE;
+}
+
+// 初始化叶节点[将cell数量置为0]
+void initialize_leaf_node(void* node) {
+    *leaf_node_num_cells(node) = 0;
+}
+
+
+// 插入cell到节点
+void lead_node_insert(Cursor* cursor, uint32_t key, Row* value) {
+    // 查找到游标指向 所在的节点
+    void* node = get_page(cursor->table->pager, cursor->page_num);
+
+    // 获取当前节点的cell数量
+    uint32_t num_cells = *leaf_node_num_cells(node);
+
+    // ! 目前还没有进行节点的拆分, 所以可能会超过cell最大数量
+    if (num_cells >= LEAF_NODE_MAX_CELLS) {
+        // cell数量超过 叶节点的最大单元数
+        printf("Need to implement splitting a leaf node.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (cursor->cell_num < num_cells) {
+        // 将大于光标指向的cell号的记录 向后平移
+        // 为新的cell腾出空间
+        for (uint32_t i = num_cells; i > cursor->cell_num; i--) {
+            memcpy(leaf_node_cell(node, i), leaf_node_cell(node, i - 1), LEAF_NODE_CELL_SIZE);
+        }
+    }
+    // cell数量+1
+    *(leaf_node_num_cells(node)) += 1;
+
+    // cell键 赋值
+    *(leaf_node_key(node, cursor->cell_num)) = key;
+
+    // 数据序列化到 cell值中
+    serialize_row(value, leaf_node_value(node, cursor->cell_num));
 }

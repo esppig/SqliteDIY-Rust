@@ -5,6 +5,7 @@
 #include <string.h>  // strcmp
 
 #include "cursor.h"
+#include "btree.h"
 
 // 输入缓冲
 typedef struct {
@@ -144,17 +145,27 @@ typedef enum {
 
 
 // 执行插入语句, 使用光标
+// 目前Btree为单节点
 ExecuteResult execute_insert(Statement* stm, Table* table) {
-    if (table->num_rows > TABLE_MAX_ROWS) {
+    // if (table->num_rows > TABLE_MAX_ROWS) {
+    //     return EXECUTE_TABLE_FULL;
+    // }
+
+    void* node = get_page(table->pager, table->root_page_num);
+    if ((*leaf_node_num_cells(node)) >= LEAF_NODE_MAX_CELLS) {
         return EXECUTE_TABLE_FULL;
     }
+
     // 要插入的行记录
     Row* row = &(stm->row_to_insert);
     // @ 获取表尾光标 [在表的最后一条记录位置的后面插入]
     Cursor* cursor = table_end(table);
-    // serialize_row(row, row_slot(table, table->num_rows));
-    serialize_row(row, cursor_value(cursor));
-    table->num_rows += 1;
+    // serialize_row(row, cursor_value(cursor));
+    // table->num_rows += 1;
+    
+    // 在Btree节点中插入row
+    lead_node_insert(cursor, row->id, row);
+    
     // 释放光标
     free(cursor);
     return EXECUTE_SUCCESS;

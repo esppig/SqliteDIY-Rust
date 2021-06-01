@@ -3,20 +3,28 @@
 
 #include "const.h"
 
+#if !defined(SQLITE_STRUCT_PAGER)
+#define SQLITE_STRUCT_PAGER
 // 页结构 抽象一个Pager的概念，管理所有的页[内存/磁盘]
 typedef struct
 {
     int fd; // 文件描述符
     uint32_t file_length; // 文件长度
+    uint32_t num_pages; // 页数
     void* pages[TABLE_MAX_PAGES]; // 页数组
 } Pager;
+#endif
  
+#if !defined(SQLITE_STRUCT_TABLE)
+#define SQLITE_STRUCT_TABLE
 // Table结构
 typedef struct
 {
-    uint32_t num_rows; // 表中的记录条数
+    // uint32_t num_rows; // 表中的记录条数
+    uint32_t root_page_num; // 根节点页码，跟踪整个Btree
     Pager* pager;  // 页结构指针
 } Table;
+#endif
 
 #if !defined(SQLITE_STRUCT_ROW)
 #define SQLITE_STRUCT_ROW

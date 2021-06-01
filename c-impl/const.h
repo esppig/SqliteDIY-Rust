@@ -75,9 +75,11 @@ typedef struct
 #define PAGE_SIZE 4096
 
 // 一页能存放多少条记录
-#define ROWS_PER_PAGE (PAGE_SIZE / ROW_SIZE)
+// 改用btree存储page，不再需要
+// #define ROWS_PER_PAGE (PAGE_SIZE / ROW_SIZE)
 
 // 一张表能存放的最大记录
-#define TABLE_MAX_ROWS (ROWS_PER_PAGE * TABLE_MAX_PAGES)
+// 改用btree存储page，不再需要
+// #define TABLE_MAX_ROWS (ROWS_PER_PAGE * TABLE_MAX_PAGES)
 
 #endif

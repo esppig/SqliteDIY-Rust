@@ -7,7 +7,7 @@ $(TARGET):
 	$(CC) $(CFLAGS) main.c table.c cursor.c btree.c -o $(TARGET) -I .
 
 clean:
-	rm $(TARGET)
+	-$(RM) $(TARGET)
 
 test:
 	ruby test.rb 

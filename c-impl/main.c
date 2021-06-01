@@ -84,6 +84,16 @@ void print_constants() {
     printf("LEAF_NODE_MAX_CELLS: %d\n", LEAF_NODE_MAX_CELLS);
 }
 
+// Btree打印，方便调试
+void print_leaf_node(void* node) {
+    uint32_t num_cells = *leaf_node_num_cells(node);
+    printf("leaf (size %d)\n", num_cells);
+    for (uint32_t i = 0; i < num_cells; i++) {
+        uint32_t key = *leaf_node_key(node, i);
+        printf("  - %d : %d\n", i, key);
+    }
+}
+
 // 处理元命令
 MetaCommandResult do_meta_command(InputBuffer* ib, Table* table) {
     if (strcmp(ib->buffer, ".exit") == 0) {
@@ -95,6 +105,12 @@ MetaCommandResult do_meta_command(InputBuffer* ib, Table* table) {
     if (strcmp(ib->buffer, ".constants") == 0) {
         printf("Constants:\n");
         print_constants();
+        return META_COMMAND_SUCCESS;
+    }
+    // Btree 打印
+    if (strcmp(ib->buffer, ".btree") == 0) {
+        printf("Tree:\n");
+        print_leaf_node(get_page(table->pager, 0));
         return META_COMMAND_SUCCESS;
     }
     return META_COMMAND_UNRECOGNIZED;

@@ -179,12 +179,13 @@ typedef enum {
 // 执行插入语句, 使用光标
 // 改进插入方法，搜索正确的插入位置[而不是直接加到末尾]
 ExecuteResult execute_insert(Statement* stm, Table* table) {
-    // 目前采用单节点[单页]
+    // -- 目前采用单节点[单页]
     void* node = get_page(table->pager, table->root_page_num);
     uint32_t num_cells = *leaf_node_num_cells(node);
-    if (num_cells >= LEAF_NODE_MAX_CELLS) {
-        return EXECUTE_TABLE_FULL;
-    }
+
+    //if (num_cells >= LEAF_NODE_MAX_CELLS) {
+    //   return EXECUTE_TABLE_FULL;
+    //}
 
     // 要插入的行记录
     Row* row = &(stm->row_to_insert);

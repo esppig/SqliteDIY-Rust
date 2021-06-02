@@ -101,6 +101,50 @@ void initialize_leaf_node(void* node) {
     *leaf_node_num_cells(node) = 0;
 }
 
+// 创建一个新的节点,并移动一半的cells, 在分裂的两半中的一方插入新值，更新父节点或者创建一个新的父节点
+void leaf_node_split_and_insert(Cursor* cursor, uint32_t key, Row* value) {
+    // 缓存旧节点，创建并初始化新节点
+    void* old_node = get_page(cursor->table->pager, cursor->page_num);
+    uint32_t new_page_num = get_unused_page_num(cursor->table->pager);
+    void* new_node = get_page(curosr->table->pager, new_page_num);
+    initialize_leaf_node(new_node);
+
+    // 将所有的cells复制到新的地方
+    // 所有已经存在的keys需要被均匀分到 新[right] 旧[left] 两个节点
+    // 对于右侧节点的每一个key，需要移动到正确的位置
+    for (int32_t i = LEAF_NODE_MAX_CELLS; i >= 0; i--) {
+        void* dst_node;
+        if (i >= LEAF_NODE_LEFT_SPLIT_COUNT) {
+            dst_node = new_node;
+        } else {
+            dst_node = old_node;
+        }
+
+        uint32_t index_within_node = i % LEAF_NODE_LEFT_SPLIT_COUNT;
+        void* dst = leaf_node_cell(dst_node, index_within_node);
+
+        if (i == cursor->cell_num) {
+            serialize_row(value, dst);
+        } else if (i > cursor->cell_num) {
+            memcpy(dst, leaf_node_cell(old_node, i - 1), LEAF_NODE_CELL_SIZE);
+        } else {
+            memcpy(dst, leaf_node_cell(old_node, i), LEAF_NODE_CELL_SIZE);
+        }
+    }
+
+    // 更新node头部中的cell数量
+    *(leaf_node_num_cells(old_node)) = LEAF_NODE_LEFT_SPLIT_COUNT;
+    *(leaf_node_num_cells(new_node)) = LEAF_NODE_RIGHT_SPLIT_COUNT;
+
+    // 更新父节点 [如果原始节点是根节点，则没有父节点，需要创建父节点]
+    if (is_node_root(old_node)) {
+        return create_new_root(cursor->table, new_page_num);
+    } else {
+        printf("Need to implement updating parent after split\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
 
 // 插入cell到节点
 void leaf_node_insert(Cursor* cursor, uint32_t key, Row* value) {
@@ -110,11 +154,14 @@ void leaf_node_insert(Cursor* cursor, uint32_t key, Row* value) {
     // 获取当前节点的cell数量
     uint32_t num_cells = *leaf_node_num_cells(node);
 
-    // ! 目前还没有进行节点的拆分, 所以可能会超过cell最大数量
+    // -- 目前还没有进行节点的拆分, 所以可能会超过cell最大数量
+    // split leaf node
     if (num_cells >= LEAF_NODE_MAX_CELLS) {
         // cell数量超过 叶节点的最大单元数
-        printf("Need to implement splitting a leaf node.\n");
-        exit(EXIT_FAILURE);
+        // printf("Need to implement splitting a leaf node.\n");
+        // exit(EXIT_FAILURE);
+        leaf_node_split_and_insert(cursor, key, value);
+        return;
     }
 
     if (cursor->cell_num < num_cells) {

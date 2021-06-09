@@ -85,12 +85,54 @@ void print_constants() {
 }
 
 // Btree打印，方便调试
-void print_leaf_node(void* node) {
-    uint32_t num_cells = *leaf_node_num_cells(node);
-    printf("leaf (size %d)\n", num_cells);
-    for (uint32_t i = 0; i < num_cells; i++) {
-        uint32_t key = *leaf_node_key(node, i);
-        printf("  - %d : %d\n", i, key);
+// void print_leaf_node(void* node) {
+//     uint32_t num_cells = *leaf_node_num_cells(node);
+//     printf("leaf (size %d)\n", num_cells);
+//     for (uint32_t i = 0; i < num_cells; i++) {
+//         uint32_t key = *leaf_node_key(node, i);
+//         printf("  - %d : %d\n", i, key);
+//     }
+// }
+
+void indent(uint32_t level) {
+    for (uint32_t i = 0; i < level; i++) {
+        printf("  ");
+    }
+}
+
+// BplusTree 多级树 调试打印
+void print_tree(Pager* pager, uint32_t page_num, uint32_t indentation_level) {
+    // 获取页码对应的节点
+    void* node = get_page(pager, page_num);
+    uint32_t keys_count, child;
+
+    switch (get_node_type(node))
+    {
+    case NODE_LEAF:
+        // 获取key数量
+        keys_count = *leaf_node_num_cells(node);
+        indent(indentation_level);
+        printf("- leaf (size %d)\n", keys_count);
+        for (uint32_t i = 0; i < keys_count; i++) {
+            indent(indentation_level + 1);
+            printf("- %d\n", *leaf_node_key(node, i));
+        }
+        break;
+    case NODE_INTERNAL:
+        keys_count = *internal_node_num_keys(node);
+        indent(indentation_level);
+        printf("- internal (size %d)\n", keys_count);
+        for (uint32_t i = 0; i < keys_count; i++) {
+            child = *internal_node_child(node, i);
+            // 递归调用
+            print_tree(pager, child, indentation_level + 1);
+
+            indent(indentation_level + 1);
+            printf("- key %d\n", *internal_node_key(node, i));
+        }
+        child = *internal_node_right_child(node);
+        print_tree(pager, child, indentation_level + 1);
+        break;
     }
 }
 
@@ -110,7 +152,8 @@ MetaCommandResult do_meta_command(InputBuffer* ib, Table* table) {
     // Btree 打印
     if (strcmp(ib->buffer, ".btree") == 0) {
         printf("Tree:\n");
-        print_leaf_node(get_page(table->pager, 0));
+        // print_leaf_node(get_page(table->pager, 0));
+        print_tree(table->pager, 0, 0);
         return META_COMMAND_SUCCESS;
     }
     return META_COMMAND_UNRECOGNIZED;

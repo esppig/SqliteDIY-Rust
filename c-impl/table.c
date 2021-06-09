@@ -103,6 +103,8 @@ Table* db_open(const char* filename) {
         // 初始化 Page0 作为第一个叶节点
         void* node = get_page(pager, 0);
         initialize_leaf_node(node);
+        // 只有第一个叶节点的时候，它也作为根节点
+        set_node_root(node, true);
     }
 
     return table;

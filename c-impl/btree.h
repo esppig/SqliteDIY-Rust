@@ -47,6 +47,12 @@ extern const uint32_t LEAF_NODE_NUMS_CELLS_SIZE;
 // 叶节点cell数量的偏移量
 extern const uint32_t LEAF_NODE_NUMS_CELLS_OFFSET;
 
+// 叶节点末尾指向下一个叶节点的指针
+extern const uint32_t LEAF_NODE_NEXT_LEAF_SIZE;
+
+// 叶节点末尾指向下一个叶节点的指针的偏移量
+extern const uint32_t LEAF_NODE_NEXT_LEAF_OFFSET;
+
 // 叶节点头部大小
 extern const uint32_t LEAF_NODE_HEADER_SIZE;
 
@@ -110,6 +116,9 @@ extern const uint32_t INTERNAL_NODE_CHILD_SIZE;
 // 内节点 Cell
 extern const uint32_t INTERNAL_NODE_CELL_SIZE;
 
+
+// 查找叶节点链表上的下一个叶节点
+uint32_t* leaf_node_next_leaf(void* node);
 
 // 返回叶节点的cell数量
 uint32_t* leaf_node_num_cells(void* node);

@@ -97,7 +97,7 @@ Table* db_open(const char* filename) {
     Table* table = malloc(sizeof(Table));
     table->pager = pager;
     // table->num_rows = num_rows;
-    table->root_page_num = 0;
+    table->root_page_no = 0;
 
     if (pager->num_pages == 0) {
         // 初始化 Page0 作为第一个叶节点

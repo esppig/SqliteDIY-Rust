@@ -21,7 +21,7 @@ typedef struct
 typedef struct
 {
     // uint32_t num_rows; // 表中的记录条数
-    uint32_t root_page_num; // 根节点页码，跟踪整个Btree
+    uint32_t root_page_no; // 根节点页码，跟踪整个Btree
     Pager* pager;  // 页结构指针
 } Table;
 #endif

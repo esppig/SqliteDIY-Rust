@@ -17,8 +17,8 @@ typedef struct
 {
     Table* table; // 表结构指针
     // uint32_t row_num; // 当前行记录数[编号]
-    uint32_t page_num; // 节点页码
-    uint32_t cell_num; // 节点cell号
+    uint32_t page_no; // 节点页码
+    uint32_t cell_no; // 节点cell号
     bool end_of_table; // 指示最后一个元素之后的位置[可插入新记录]
 } Cursor;
 #endif

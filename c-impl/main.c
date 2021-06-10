@@ -223,7 +223,7 @@ typedef enum {
 // 改进插入方法，搜索正确的插入位置[而不是直接加到末尾]
 ExecuteResult execute_insert(Statement* stm, Table* table) {
     // -- 目前采用单节点[单页]
-    void* node = get_page(table->pager, table->root_page_num);
+    void* node = get_page(table->pager, table->root_page_no);
     uint32_t num_cells = *leaf_node_num_cells(node);
 
     //if (num_cells >= LEAF_NODE_MAX_CELLS) {
@@ -239,8 +239,8 @@ ExecuteResult execute_insert(Statement* stm, Table* table) {
     // 返回给定cell键在树中的位置光标
     Cursor* cursor = table_find(table, key_to_insert);
     
-    if (cursor->cell_num < num_cells) {
-        uint32_t key_at_index = *leaf_node_key(node, cursor->cell_num);
+    if (cursor->cell_no < num_cells) {
+        uint32_t key_at_index = *leaf_node_key(node, cursor->cell_no);
         if (key_at_index == key_to_insert) {
             return EXECUTE_DUPLICATE_KEY;
         }

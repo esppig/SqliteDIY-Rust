@@ -194,8 +194,7 @@ uint32_t* internal_node_child(void* node, uint32_t child_num) {
 
 // 获取内节点中指定的key
 uint32_t* internal_node_key(void* node, uint32_t key_num) {
-    // ???
-    return internal_node_cell(node, key_num) + INTERNAL_NODE_CHILD_SIZE;
+    return (void*)internal_node_cell(node, key_num) + INTERNAL_NODE_CHILD_SIZE;
 }
 
 // 获取节点内的最大key

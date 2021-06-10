@@ -129,8 +129,11 @@ void initialize_leaf_node(void* node);
 // 插入cell到节点
 void leaf_node_insert(Cursor* cursor, uint32_t key, Row* value);
 
-// 因为目前没有实现内部节点，因此可以对叶节点进行二分查询
+// 查询叶节点
 Cursor* leaf_node_find(Table* table, uint32_t page_num, uint32_t key);
+
+// 查找内节点
+Cursor* internal_node_find(Table* table, uint32_t page_num, uint32_t key);
 
 // 获取节点类型
 NodeType get_node_type(void* node);

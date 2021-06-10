@@ -343,7 +343,7 @@ void leaf_node_insert(Cursor* cursor, uint32_t key, Row* value) {
     serialize_row(value, leaf_node_value(node, cursor->cell_num));
 }
 
-// 因为目前没有实现内部节点，因此可以对叶节点进行二分查询
+// 叶节点查询
 Cursor* leaf_node_find(Table* table, uint32_t page_num, uint32_t key) {
     void* node = get_page(table->pager, page_num);
     uint32_t num_cells = *leaf_node_num_cells(node);
@@ -372,6 +372,37 @@ Cursor* leaf_node_find(Table* table, uint32_t page_num, uint32_t key) {
 
     cursor->cell_num = min_index;
     return cursor;
+}
+
+// 查找内节点
+Cursor* internal_node_find(Table* table, uint32_t page_num, uint32_t key) {
+    void* node = get_page(table->pager, page_num);
+    uint32_t keys_count = *internal_node_num_keys(node);
+
+    // 二分查找
+    uint32_t min_idx = 0;
+    uint32_t max_idx = keys_count; // keys_count 个 child, 再加一个最右child
+
+    while (min_idx != max_idx) {
+        uint32_t idx = (min_idx + max_idx) / 2;
+        uint32_t key_right = *internal_node_key(node, idx);
+        if (key_right >= key) {
+            max_idx = idx;
+        } else {
+            min_idx = idx + 1;
+        }
+    }
+
+    // 根据内节点的子节点的不同类型不同处理
+    uint32_t child_no = *internal_node_child(node, min_idx);
+    void* child_node = get_page(table->pager, child_no);
+    switch (get_node_type(child_node))
+    {
+    case NODE_LEAF:
+        return leaf_node_find(table, child_no, key);
+    case NODE_INTERNAL:
+        return internal_node_find(table, child_no, key);
+    }
 }
 
 // 获取节点类型
